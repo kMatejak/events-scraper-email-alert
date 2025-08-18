@@ -30,6 +30,8 @@ def greenjobs_de():
 
         for job_row in job_rows:
             link = job_row.find("a")["href"].replace(" ", "%20")
+            if not link.__contains__("https"):
+                link = "https://www.greenjobs.de/" + link
             title = job_row.find("a").text.strip()
             company_location = job_row.text.strip()
             company_location = company_location.replace(title, "")
