@@ -2,7 +2,6 @@ def talents4good():
     # import libraries
     import os
     import pickle
-    import re
     import requests
     from bs4 import BeautifulSoup
 
@@ -15,33 +14,38 @@ def talents4good():
     """
     # get and parse webpage
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"}
-    url = "https://jobs.talents4good.org/jm-ajax/get_listings/search_location=Berlin&filter_job_type%5B%5D=remote&filter_job_type%5B%5D=hybrid&filter_job_type%5B%5D=vollzeit&filter_job_type%5B%5D="
-    r = requests.get(url, headers=headers)
-    soup = BeautifulSoup(r.json()["html"], 'html.parser')
+    urls = [
+        "https://jobs.talents4good.org/jobs?location=Berlin", 
+        "https://jobs.talents4good.org/jobs?remote=1",
+    ]
 
-    job_listings = soup.find_all("li")
-
-    # loop through job postings, store details in dict
+    # loop through pages, extract all job postings, and store in dict
     current_jobs_dict = {}
+    n_jobs_found = 0
 
-    for job_listing in job_listings:
-        link = job_listing.find("a")["href"]
-        title = job_listing.find("h3", class_="t4g-job-title").text.strip()
-        company = job_listing.find("div", class_ = "t4g-company-name").text.strip()
-        location = job_listing.find("span", class_ = "t4g-job-location").text.strip()
-        date_posted = job_listing.find("time")["datetime"]
+    for url in urls:
+        r = requests.get(url, headers=headers)
+        soup = BeautifulSoup(r.text, "html.parser")
 
-        status = job_listing.find("span", class_ = "acf_job_status").text.strip()
-        job_type = job_listing.find("span", class_ = "t4g-job-types").text.strip()
-        job_type_clean = re.sub(r"\s{2,}", " | ", job_type)
-        job_details = f"{job_type_clean} | {status}"
+        job_listings = soup.find_all("div", class_="job-details")
+        n_jobs_found += len(job_listings)
 
-        current_jobs_dict.update({link: {"title": title,
-                                         "company": company,
-                                         "location": location,
-                                         "date_posted": date_posted,
-                                         "details": job_details,
-                                         "link": link}})
+        for job_listing in job_listings:
+            link = "https://jobs.talents4good.org" + job_listing.find("a")["href"]
+            title = job_listing.find("a").text.strip()
+            details_all = job_listing.find_all("div")[1].text.split("\n\n")[1:]
+            details_all = [t.strip().split("\n")[0] for t in details_all]
+            company = details_all[0]
+            location = details_all[2]
+            date_posted = details_all[3]
+            job_details = details_all[1]
+
+            current_jobs_dict.update({link: {"title": title,
+                                            "company": company,
+                                            "location": location,
+                                            "date_posted": date_posted,
+                                            "details": job_details,
+                                            "link": link}})
 
 
     """
@@ -65,7 +69,7 @@ def talents4good():
     # create list containing only ids of new jobs
     new_jobs = {job: current_jobs_dict[job] for job in current_jobs_dict if job not in saved_jobs_dict}
     # create written summary
-    summary = f"{len(job_listings)} jobs found, {len(current_jobs_dict)} scraped, {len(new_jobs)} new jobs."
+    summary = f"{n_jobs_found} jobs found, {len(current_jobs_dict)} unique scraped, {len(new_jobs)} new jobs."
 
     # return touple of summary and dict with new job postings if any, otherwise return None
     return (summary, new_jobs)
