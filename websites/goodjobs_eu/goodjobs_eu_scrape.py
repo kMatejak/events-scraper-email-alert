@@ -33,7 +33,7 @@ def goodjobs_eu():
         n_jobs_found += len(jobcards)
 
         for jobcard in jobcards:
-            link = jobcard["href"]
+            job_url = jobcard["href"]
             title = jobcard.find("h2").text.strip()
             company = jobcard \
                 .find("div") \
@@ -59,8 +59,8 @@ def goodjobs_eu():
                 else:
                     location = location_remote_parts[0]
                     remote = None
-
                 date_posted = job_details[-1].find("span").text.strip()
+                job_dict_id = job_url
 
             if is_powered_by_academics:
                 job_details = jobcard \
@@ -72,13 +72,19 @@ def goodjobs_eu():
                 location = job_details[0].text.strip()
                 remote = None
                 date_posted = "N/A"
+                job_dict_id = company + ' | ' + title
                 
-            current_jobs_dict.update({link: {"title": title,
-                                             "company": company,
-                                             "location": location,
-                                             "date_posted": date_posted,
-                                             "details": remote,
-                                             "link": link}})
+            current_jobs_dict.update(
+                {job_dict_id: {
+                    "title": title,
+                    "company": company,
+                    "location": location,
+                    "date_posted": date_posted,
+                    "details": remote,
+                    "link": job_url
+                    }
+                }
+            )
 
     """
     LOAD RESULTS OF LAST EXECUTION - STORE CURRENT RESULTS
