@@ -1,5 +1,6 @@
 def niq():
     # import libraries
+    import math
     import os
     import pickle
     import requests
@@ -14,29 +15,44 @@ def niq():
     """
     # get and parse webpage
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"}
-    url = "https://nielseniq.com/?s=&market=global&language=en&orderby=date&order=DESC&post_type=career_job&job_locations=germany&job_teams=&job_types="
+    base_url = "https://nielseniq.com/"
+    search_params = "?s=&market=global&language=en&orderby=date&order=DESC&post_type=career_job&job_locations=germany&job_teams=&job_types="
+
+    url = base_url+search_params
     r = requests.get(url, headers=headers)
     soup = BeautifulSoup(r.text, "html.parser")
     
     n_jobs = soup.find("h1", class_="h5")["data-posts-found"]
-    job_listings = soup.find_all("article")
+    RESULTS_PER_PAGE = 12
+    n_pages = math.ceil(int(n_jobs) / RESULTS_PER_PAGE)
 
-    # loop through job postings, store details in dict
-    current_jobs_dict = {}
-    company = "NiQ"
+    for page in range(1, n_pages+1):
+        url = f"{base_url}page/{page}/{search_params}"
+        r = requests.get(url, headers=headers)
+        soup = BeautifulSoup(r.text, "html.parser")
 
-    for job_listing in job_listings:
-        link = job_listing.find("a")["href"]
-        title = job_listing.find("h5").text.strip()
-        location = job_listing.find("span", class_="tax-term").text
-        date_posted = "N/A"
+        job_listings = soup.find_all("article")
 
-        current_jobs_dict.update({link: {"title": title,
-                                         "company": company,
-                                         "location": location,
-                                         "date_posted": date_posted,
-                                         "link": link}})
+        # loop through job postings, store details in dict
+        current_jobs_dict = {}
+        company = "NiQ"
 
+        for job_listing in job_listings:
+            link = job_listing.find("a")["href"]
+            title = job_listing.find("h5").text.strip()
+            location = job_listing.find("span", class_="tax-term").text
+            date_posted = "N/A"
+
+            current_jobs_dict.update(
+                {link: {
+                    "title": title,
+                    "company": company,
+                    "location": location,
+                    "date_posted": date_posted,
+                    "link": link
+                    }
+                }
+            )
 
     """
     LOAD RESULTS OF LAST EXECUTION - STORE CURRENT RESULTS
@@ -63,3 +79,4 @@ def niq():
 
     # return touple of summary and dict with new job postings if any, otherwise return None
     return (summary, new_jobs)
+print(niq())
