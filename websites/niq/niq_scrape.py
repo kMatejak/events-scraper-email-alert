@@ -26,6 +26,9 @@ def niq():
     RESULTS_PER_PAGE = 12
     n_pages = math.ceil(int(n_jobs) / RESULTS_PER_PAGE)
 
+    current_jobs_dict = {}
+    company = "NiQ"
+
     for page in range(1, n_pages+1):
         url = f"{base_url}page/{page}/{search_params}"
         r = requests.get(url, headers=headers)
@@ -34,9 +37,6 @@ def niq():
         job_listings = soup.find_all("article")
 
         # loop through job postings, store details in dict
-        current_jobs_dict = {}
-        company = "NiQ"
-
         for job_listing in job_listings:
             link = job_listing.find("a")["href"]
             title = job_listing.find("h5").text.strip()
@@ -79,4 +79,3 @@ def niq():
 
     # return touple of summary and dict with new job postings if any, otherwise return None
     return (summary, new_jobs)
-print(niq())
