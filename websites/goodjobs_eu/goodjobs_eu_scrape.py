@@ -42,6 +42,7 @@ def goodjobs_eu():
                 .find("span") \
                 .text.strip()
 
+            is_powered_by_academics = False
             if jobcard.find("p"):
                 is_powered_by_academics = jobcard.find("p").text.strip() == "Powered by academics"
 
