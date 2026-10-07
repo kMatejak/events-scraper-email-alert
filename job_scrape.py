@@ -8,31 +8,18 @@ def main():
     from utils import add_sorting_keys
     # import scraping modules
     from websites.goodjobs_eu.goodjobs_eu_scrape import goodjobs_eu
-    from websites.greenjobs_de.greenjobs_de_scrape import greenjobs_de
     from websites.talents4good.talents4good_scrape import talents4good
-    from websites.ipsos.ipsos_scrape import ipsos
-    from websites.niq.niq_scrape import niq
-    from websites.index_de.index_de_scrape import index_de
-    from websites.telekom.telekom_scrape import telekom
-    from websites.ottobock.ottobock_scrape import ottobock
-    from websites.recup.recup_scrape import recup
-    from websites.the_female_company.the_female_company_scrape import the_female_company
+    # from websites.waw-districts.ochota.ochota_scrape import ochota
+
 
     # Specify which sites to scrape and the corresponding company/platform name
     company_funcs = {
         'Goodjobs EU': goodjobs_eu,
-        'Greenjobs DE': greenjobs_de,
         'Talents4Good': talents4good,
-        'Ipsos': ipsos,
-        'NiQ': niq,
-        'index': index_de,
-        'Telekom': telekom,
-        'Ottobock': ottobock,
-        'RECUP': recup,
-        'The Female Company': the_female_company,
+        # 'Ochota': ochota
         }
 
-    # define key words for relevant (pos) and irrelevant (neg) flagging
+    # Define key words for relevant (pos) and irrelevant (neg) flagging
     pos_search_terms = ["data", "analyst", "analysis", "analytics", "machine learning",
                         "daten", "analyse", "auswertung", "analytiker", "statistik",
                         "marktforschung", "markt", "forschung", "market", "research", 
@@ -47,12 +34,13 @@ def main():
     error_messages = ''
 
 
-    """
-    POPULATE EMAIL BODY TEXTS WITH RESULTS OF SCRAPER MODULES
-    """
-    # call scraping function of each website (return dictionary)
+    # ---------------------------------------------------------------- #
+    # POPULATE EMAIL BODY TEXTS WITH RESULTS OF SCRAPER MODULES ------ #
+    # ---------------------------------------------------------------- #
+
+    # Call scraping function of each website (return dictionary)
     for website_name, website_func in company_funcs.items():
-        # make scraping function call.
+        # Make scraping function call
         try:
             summary, new_company_jobs = website_func()
             print(f'{website_name}: {summary}')
@@ -103,20 +91,21 @@ def main():
         
         n_new_jobs_total += n_new_company_jobs
         
-    # create final body messages by joining individual company body texts
+    # Create final body messages by joining individual company body texts
     text_body = '<br><hr><br>'.join(ls_text_body)
     html_body = '<br><hr><br>'.join(ls_html_body)
 
-    # add captured error messages to end of texts
+    # Add captured error messages to end of texts
     if error_messages:
         text_body += f'<br><hr><br>{error_messages}'
         html_body += f'<br><hr><br>{error_messages}'
 
 
-    """
-    SET UP CONNECTION AND SEND EMAIL
-    """
-    # send job alert per mail if new jobs were found (i.e. if bodies are not empty)
+    # ---------------------------------------------------------------- #
+    # SET UP CONNECTION AND SEND EMAIL ------------------------------- #
+    # ---------------------------------------------------------------- #
+
+    # Send job alert per mail if new jobs were found (i.e. if bodies are not empty)
     if n_new_jobs_total == 0:
         print("No new jobs.")
         return
@@ -130,18 +119,18 @@ def main():
     # set up email message
     msg = MIMEMultipart('alternative')
     msg['Subject'] = f'JOB ALERT ({n_new_jobs_total} new)'
-    msg['From'] = EMAIL_ADDRESS
-    msg['To'] = EMAIL_TO
+    msg['From'] = EMAIL_ADDRESS # type: ignore
+    msg['To'] = EMAIL_TO # type: ignore
     msg.attach(MIMEText(text_body, 'plain'))
     msg.attach(MIMEText(html_body, 'html'))
 
     # send email
     with smtplib.SMTP('smtp.gmail.com', 587) as server:
         server.starttls()
-        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string())
+        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD) # type: ignore
+        server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string()) # type: ignore
 
-    print("New jobs, email notification sent.")
+    print("New posts, email notification sent!")
 
 
 if __name__ == '__main__':

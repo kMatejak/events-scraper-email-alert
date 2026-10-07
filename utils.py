@@ -1,7 +1,9 @@
 import re
 
 def contains_words(input_string: str, search_words: list) -> bool:
-    """ Checks whether a string contains specified key words
+    """
+    Checks whether a string contains specified key words
+
     Args: 
         input_string (str): The text to be searched in
         search_words (list): A list of words to be searched
