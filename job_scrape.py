@@ -1,7 +1,8 @@
 def main():
     import os
+    import ssl
     import smtplib
-    # from dotenv import load_dotenv
+    from dotenv import load_dotenv
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
     from utils import add_sorting_keys
@@ -59,7 +60,7 @@ def main():
         text_body_comp = (f'**NADCIĄGA Sesja Rady Dzielnicy {website_name}**\nHej, tu twój Boromeusz! Mam wieści!\n'
                           f'Właśnie się ukazało:\n\n')
         html_body_comp = (f'<big><b>NADCIĄGA Sesja Rady Dzielnicy {website_name}</b></big> <br>'
-                          f'<small>Hej, tu twój Boromeusz! Mam wieści!<br>Właśnie się ukazało:</small> <br><br>')
+                          f'Hej, tu twój Boromeusz! Mam wieści!<br>Właśnie się ukazało: <br><br>')
 
         # add information for each job to company text section
         for post_details in new_district_post_filtered.values():
@@ -79,6 +80,22 @@ def main():
             # Add element "details" to bodies if existent
             text_body_comp += f'\nOpis: {details}\n\n' if details else '\n\n'
             html_body_comp += f'<br>Opis: {details}<br><br>' if details else '<br><br>'
+
+        text_body_comp += (f'\n---\n'
+                           f'\nBoromeusz Dzielnicowy to wyjątkowy służbista. To wysoce wykwalifikowany ' 
+                           f'skrypt w języku Python, który podejmuje się *dokładnie* jednego zadania. '
+                           f'Raz na dobę Boromeusz przegląda podstrony z aktualnościami wybranych przez Ciebie urzędów ' 
+                           f'dzielnic i wysyła Ci powiadomienie, gdy pojawi się zapowiedź sesji rady w danej dzielnicy / dzielnicach.' 
+                           f'\n\n\nBoromeusz Dzielnicowy to projekt twojego fellow razemka, Krzysztofa Matejaka (matejak.com). ' 
+                           f'\n\nSpokojnie, zazwyczaj nie gryzie przy próbach kontaktu. Chętnie opowiada boromejskie przypowieści.\n\n')
+        html_body_comp += (f'<br><hr><br>'
+                           f'<br>Boromeusz Dzielnicowy to wyjątkowy służbista. To wysoce wykwalifikowany '
+                           f'skrypt w języku Python, który podejmuje się *dokładnie* jednego zadania. '
+                           f'Raz na dobę Boromeusz przegląda podstrony z aktualnościami wybranych przez Ciebie urzędów ' 
+                           f'dzielnic i wysyła Ci powiadomienie, gdy pojawi się zapowiedź sesji rady w danej dzielnicy / dzielnicach.'
+                           f'<br><br><br>Boromeusz Dzielnicowy to projekt twojego <i>fellow</i> razemka, '
+                           f'<br>Krzysztofa Matejaka (<a href="https://matejak.com/">matejak.com</a>).'  
+                           f'<br>Spokojnie, zazwyczaj nie gryzie przy próbach kontaktu ;) Chętnie opowiada boromejskie przypowieści.<br><br>')
         
         ls_text_body.append(text_body_comp)
         ls_html_body.append(html_body_comp)
@@ -105,32 +122,38 @@ def main():
         return
     
     # include mail account credentials from environment variables
-    # load_dotenv()
-    # EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
-    # EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-    # EMAIL_TO = os.getenv('EMAIL_TO')
+    load_dotenv()
+    EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
+    EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
+    EMAIL_TO = os.getenv('EMAIL_TO')
     
     # set up email message
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = f'SESJA RADY DZIELNICY ALERT łe-ło łe-ło łe-ło!!!'
-    # msg['From'] = EMAIL_ADDRESS # type: ignore
-    # msg['To'] = EMAIL_TO # type: ignore
-
-    msg['From'] = 'bok@kowalsky.com' # type: ignore
-    msg['To'] = 'krystyna@polska.pl' # type: ignore
+    msg['Subject'] = f'SESJA RADY DZIELNICY łe-ło łe-ło łe-ło!!!'
+    msg['From'] = EMAIL_ADDRESS # type: ignore
+    msg['To'] = EMAIL_TO # type: ignore
     msg.attach(MIMEText(text_body, 'plain'))
     msg.attach(MIMEText(html_body, 'html'))
 
     # send email
-    # with smtplib.SMTP('smtp.gmail.com', 587) as server:
-        # server.starttls()
-        # server.login(EMAIL_ADDRESS, EMAIL_PASSWORD) # type: ignore
-        # server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string()) # type: ignore
+    port = 465
+    smtp_server = "smtp.wp.pl"
+    sender_email = EMAIL_ADDRESS
+    password = EMAIL_PASSWORD
 
-    # print(text_body)
-    # print()
-    # print(html_body)
-    # print()
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(
+        smtp_server,
+        port,
+        context=context,
+        ) as server:
+        server.login(sender_email, password) # type: ignore
+        server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string()) # type: ignore
+
+    print(text_body)
+    print()
+    print(html_body)
+    print()
     print("Nowe posty! Powiadomienie email zostało wysłane.")
 
 
