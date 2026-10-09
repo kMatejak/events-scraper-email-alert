@@ -126,22 +126,28 @@ def main():
     load_dotenv()
     EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
     EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-    EMAIL_TO = os.getenv('EMAIL_TO')
     
     # set up email message
     msg = MIMEMultipart('alternative')
     msg['Subject'] = f'SESJA RADY DZIELNICY łe-ło łe-ło łe-ło!!!'
-    # msg['From'] = EMAIL_ADDRESS # type: ignore
-    # msg['To'] = EMAIL_TO # type: ignore
+    msg['From'] = str(EMAIL_ADDRESS)
     msg.attach(MIMEText(text_body, 'plain'))
     msg.attach(MIMEText(html_body, 'html'))
 
-    # send email
+    # send emails
     port = 465
     smtp_server = "smtp.wp.pl"
     sender_email = EMAIL_ADDRESS
     password = EMAIL_PASSWORD
+    recipients = []
 
+    with open("contacts.csv") as file:
+        csv_reader = csv.reader(file, delimiter=',')
+        next(csv_reader)  # Skip header row
+        for row in csv_reader:
+            recipients.append(str(row[0]))
+
+    msg['To'] = ", ".join(recipients)
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(
         smtp_server,
@@ -149,22 +155,8 @@ def main():
         context=context,
         ) as server:
         server.login(sender_email, password) # type: ignore
-        # server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string()) # type: ignore
+        server.sendmail(sender_email, recipients, msg.as_string()) # type: ignore
 
-        with open("contacts.csv") as file:
-            reader = csv.reader(file)
-            next(reader)  # Skip header row
-            for mail, name, districts in reader:
-                msg["To"] = f"{mail}"
-                msg["From"] = f"{sender_email}"
-                # server.sendmail(sender_email, mail, msg.as_string())
-                server.send_message(msg)            
-
-
-    print(text_body)
-    print()
-    print(html_body)
-    print()
     print("Nowe posty! Powiadomienie email zostało wysłane.")
 
 
