@@ -4,3 +4,4 @@
 *.pkl
 .env
 **/__pycache__/
+contacts.csv
