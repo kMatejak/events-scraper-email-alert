@@ -1,6 +1,7 @@
 def main():
     import os
     import ssl
+    import csv
     import smtplib
     from dotenv import load_dotenv
     from email.mime.multipart import MIMEMultipart
@@ -130,8 +131,8 @@ def main():
     # set up email message
     msg = MIMEMultipart('alternative')
     msg['Subject'] = f'SESJA RADY DZIELNICY łe-ło łe-ło łe-ło!!!'
-    msg['From'] = EMAIL_ADDRESS # type: ignore
-    msg['To'] = EMAIL_TO # type: ignore
+    # msg['From'] = EMAIL_ADDRESS # type: ignore
+    # msg['To'] = EMAIL_TO # type: ignore
     msg.attach(MIMEText(text_body, 'plain'))
     msg.attach(MIMEText(html_body, 'html'))
 
@@ -148,7 +149,17 @@ def main():
         context=context,
         ) as server:
         server.login(sender_email, password) # type: ignore
-        server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string()) # type: ignore
+        # server.sendmail(EMAIL_ADDRESS, EMAIL_TO, msg.as_string()) # type: ignore
+
+        with open("contacts.csv") as file:
+            reader = csv.reader(file)
+            next(reader)  # Skip header row
+            for mail, name, districts in reader:
+                msg["To"] = f"{mail}"
+                msg["From"] = f"{sender_email}"
+                # server.sendmail(sender_email, mail, msg.as_string())
+                server.send_message(msg)            
+
 
     print(text_body)
     print()
