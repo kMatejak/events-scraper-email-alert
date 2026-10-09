@@ -13,7 +13,7 @@ def ochota():
     PARSE AND SCRAPE WEBPAGES FOR CURRENT POSTS
     """
     # get and parse webpage
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"}
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0"}
     urls = [
         "https://ochota.um.warszawa.pl/wiecej-aktualnosci",
     ]
