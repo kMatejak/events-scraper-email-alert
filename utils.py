@@ -15,17 +15,17 @@ def contains_words(input_string: str, search_words: list) -> bool:
     return len(matches) > 0
 
 
-def add_sorting_keys(jobs_dict: dict, pos_search_terms: list, neg_search_terms: list) -> dict:
-    for job_details in jobs_dict.values():
+def add_sorting_keys(post_dict: dict, pos_search_terms: list, neg_search_terms: list) -> dict:
+    for post_details in post_dict.values():
         # initiate key - value pairs
-        job_details['relevance'] = 0
-        job_details['font_style'] = ''
+        post_details['relevance'] = 0
+        post_details['font_style'] = ''
         # overwrite default if job title contains relevant words
-        if contains_words(job_details['title'], pos_search_terms):
-            job_details['relevance'] = 1
-            job_details['font_style'] = 'style="color:green;"'
+        if contains_words(post_details['title'], pos_search_terms):
+            post_details['relevance'] = 1
+            post_details['font_style'] = 'style="color:green;"'
         # overwrite default or positive relevance if negative terms are present
-        if contains_words(job_details['title'], neg_search_terms):
-            job_details['relevance'] = -1
-            job_details['font_style'] = 'style="color:purple;"'
-    return jobs_dict
+        # if contains_words(post_details['title'], neg_search_terms):
+        #     post_details['relevance'] = -1
+        #     post_details['font_style'] = 'style="color:purple;"'
+    return post_dict
